@@ -1,0 +1,62 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: owncloud
+  labels:
+    app: owncloud
+spec:
+  ports:
+    - name: http
+      port: 80
+      nodePort: 30031
+  selector:
+    app: owncloud
+    tier: frontend
+  type: LoadBalancer
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: owncloud-pv-claim
+  labels:
+    app: owncloud
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: owncloud
+  labels:
+    app: owncloud
+spec:
+  selector:
+    matchLabels:
+      app: owncloud
+      tier: frontend
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: owncloud
+        tier: frontend
+    spec:
+      containers:
+        - image: owncloud:10.0
+          name: owncloud
+          env:
+          ports:
+            - containerPort: 80
+              name: owncloud
+          volumeMounts:
+            - name: owncloud-persistent-storage
+              mountPath: /var/www/html
+      volumes:
+        - name: owncloud-persistent-storage
+          persistentVolumeClaim:
+            claimName: owncloud-pv-claim
