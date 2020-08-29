@@ -1,0 +1,16 @@
+version: '3.1'
+services:
+  owncloud:
+    image: owncloud:10.0
+    ports:
+      - 30033:80
+    volumes:
+      - ~/volumes/owncloud/html:/var/www/html
+    links:
+      - mysql:owncloud-db
+  mysql:
+    image: library/mariadb:10.5.5
+    env_file:
+      - mysql.env
+    volumes:
+      - ~/volumes/owncloud/mysql/:/var/lib/mysql
